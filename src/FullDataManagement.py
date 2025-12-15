@@ -88,7 +88,7 @@ def New_Columns():
     print(f"  - Rows with zero/missing TotalPay: {((df['TotalPay'] == 0) | df['TotalPay'].isna()).sum():,}")
     print(f"  - High Overtime Employees: {df['HighOvertimeFlag'].sum():,}")
     print(f"\n  - Salary Categories:")
-    print(df['SalaryCategory'].value_counts().sort_index())
+    print(df['SalaryCategory'].value_counts().sort_index().to_string())
     
     return df
 
@@ -144,11 +144,11 @@ def Summary_Statistics(df):
 
     # Value counts for categorical columns (top 10)
     print("\n7. Top 10 Most Common Job Titles:")
-    print(df['JobTitle'].value_counts().head(10))
+    print(df['JobTitle'].value_counts().head(10).to_string())
     
     print("\n8. Status Distribution:")
     if 'Status' in df.columns:
-        print(df['Status'].value_counts())
+        print(df['Status'].value_counts().to_string())
 
     # Percentiles
     print("\n9. TotalPayBenefits Percentiles:")
