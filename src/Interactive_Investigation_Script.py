@@ -1,7 +1,7 @@
 import pandas as pd
 import sys
 
-def load_data(filepath='merged_data.csv'):
+def load_data(filepath='..\\Data\\merged_data.csv'):
     """Load the employee dataset with error handling"""
     try:
         dtypes = {

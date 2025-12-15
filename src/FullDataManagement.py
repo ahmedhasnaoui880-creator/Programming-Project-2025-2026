@@ -12,10 +12,7 @@ def get_data_path(filename):
 def New_Columns():
     """Create new calculated columns with error handling"""
     # Load the CSV using relative path
-    data_file = get_data_path('data.csv')
-    
-    # FIX: Specify dtypes and handle mixed types
-    # Use converters to force numeric conversion
+    data_file = get_data_path('cleaned_data.csv')
     df = pd.read_csv(data_file, low_memory=False)
     
     print(f"Loaded {len(df)} records from {data_file}")
