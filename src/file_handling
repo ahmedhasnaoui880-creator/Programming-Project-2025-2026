@@ -16,7 +16,6 @@ def process_file(data_path):
 
     # SEARCH FOR "chief"
     print("\n========== SEARCH RESULTS FOR 'chief' ==========")
-
     found = False
     with open(data_path, "r", encoding="utf-8") as file:
         for line in file:
@@ -46,8 +45,8 @@ def process_file(data_path):
 
 
 def main():
-    # Simple hardcoded path - change this as needed
-    data_path = "Data/Data.csv"
+    # Simple hardcoded path
+    data_path = "Data/data.csv"
     
     process_file(data_path)
 

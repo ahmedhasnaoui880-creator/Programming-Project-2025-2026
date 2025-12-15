@@ -1,9 +1,15 @@
 import pandas as pd
+import os
 import sys
 
-def load_data(filepath='..\\Data\\merged_data.csv'):
+def load_data(filepath=None):
     """Load the employee dataset with error handling"""
     try:
+        # If no filepath provided, use default relative path
+        if filepath is None:
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            filepath = os.path.join(script_dir, '..', 'Data', 'merged_data.csv')
+        
         dtypes = {
             'Id': 'int32',
             'EmployeeName': 'string',
@@ -25,7 +31,7 @@ def load_data(filepath='..\\Data\\merged_data.csv'):
     
     except FileNotFoundError:
         print(f"Error: File '{filepath}' not found.")
-        print("Please make sure the file exists in the current directory.")
+        print("Please make sure the file exists in the Data directory.")
         sys.exit(1)
     
     except pd.errors.EmptyDataError:
@@ -61,7 +67,7 @@ def display_results(filtered_df, keyword):
     print("=" * 60)
     
     if num_matches == 0:
-        print("\n❌ No matches found.")
+        print("\n No matches found.")
         print("Tips:")
         print("  - Try a shorter keyword (e.g., 'manager' instead of 'senior manager')")
         print("  - Check for typos")
@@ -91,13 +97,13 @@ def display_results(filtered_df, keyword):
             print("✓ Highest TotalPay: N/A (no valid data)")
         
         # Additional useful statistics
-        print(f"\n📊 Additional Statistics:")
+        print(f"\n Additional Statistics:")
         print(f"  • Median BasePay: ${filtered_df['BasePay'].median():,.2f}")
         print(f"  • Total Overtime Paid: ${filtered_df['OvertimePay'].sum():,.2f}")
         print(f"  • Agencies represented: {filtered_df['Agency'].nunique()}")
         
         # Show sample of results
-        print(f"\n📋 Sample Results (first 5):")
+        print(f"\n Sample Results (first 5):")
         print("-" * 60)
         sample_cols = ['EmployeeName', 'JobTitle', 'BasePay', 'TotalPay', 'Agency']
         available_cols = [col for col in sample_cols if col in filtered_df.columns]
@@ -109,21 +115,25 @@ def display_results(filtered_df, keyword):
     return True
 
 def save_results(filtered_df, filename='custom_search.csv'):
-    """Save filtered results to CSV"""
+    """Save filtered results to CSV in the Data folder"""
     try:
         if len(filtered_df) == 0:
             print("\n⚠ No data to save.")
             return
         
-        filtered_df.to_csv(filename, index=False)
-        print(f"\n💾 Results saved to '{filename}'")
+        # Save to Data folder
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        output_path = os.path.join(script_dir, '..', 'Data', filename)
+        
+        filtered_df.to_csv(output_path, index=False)
+        print(f"\n Results saved to 'Data/{filename}'")
         print(f"   Total records saved: {len(filtered_df):,}")
     
     except PermissionError:
-        print(f"\n❌ Error: Permission denied. Please close '{filename}' if it's open.")
+        print(f"\n Error: Permission denied. Please close '{filename}' if it's open.")
     
     except Exception as e:
-        print(f"\n❌ Error saving file: {str(e)}")
+        print(f"\n Error saving file: {str(e)}")
 
 def main():
     """Main interactive loop"""
@@ -132,7 +142,7 @@ def main():
     print("=" * 60)
     
     # Load data
-    df = load_data('merged_data.csv')
+    df = load_data()
     
     while True:
         print("\n" + "-" * 60)
@@ -142,15 +152,15 @@ def main():
             keyword = input("\nEnter job title keyword to search (or 'quit' to exit): ").strip()
             
             if keyword.lower() in ['quit', 'exit', 'q']:
-                print("\n👋 Goodbye!")
+                print("\n Goodbye!")
                 break
             
             if not keyword:
-                print("⚠ Please enter a valid keyword.")
+                print(" Please enter a valid keyword.")
                 continue
             
             # Search
-            print(f"\n🔍 Searching for '{keyword}'...")
+            print(f"\n Searching for '{keyword}'...")
             filtered_df = search_by_job_title(df, keyword)
             
             # Display results
@@ -158,7 +168,7 @@ def main():
             
             # Save if there are results
             if has_results:
-                save_choice = input("\n💾 Save these results? (y/n): ").strip().lower()
+                save_choice = input("\n Save these results? (y/n): ").strip().lower()
                 if save_choice in ['y', 'yes']:
                     filename = input("Enter filename (or press Enter for 'custom_search.csv'): ").strip()
                     if not filename:
@@ -169,11 +179,11 @@ def main():
                     save_results(filtered_df, filename)
         
         except KeyboardInterrupt:
-            print("\n\n👋 Interrupted by user. Goodbye!")
+            print("\n Interrupted by user. Goodbye!")
             break
         
         except Exception as e:
-            print(f"\n❌ Unexpected error: {str(e)}")
+            print(f"\n Unexpected error: {str(e)}")
             print("Please try again.")
 
 if __name__ == "__main__":

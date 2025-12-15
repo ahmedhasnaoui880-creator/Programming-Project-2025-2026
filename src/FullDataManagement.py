@@ -1,6 +1,5 @@
 import pandas as pd
 import os
-import numpy as np
 
 # Fix 1: Use relative paths with os.path.join for cross-platform compatibility
 def get_data_path(filename):
@@ -8,7 +7,6 @@ def get_data_path(filename):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     data_path = os.path.join(script_dir, '..', 'Data', filename)
     return data_path
-
 def New_Columns():
     """Create new calculated columns with error handling"""
     # Load the CSV using relative path
@@ -26,32 +24,25 @@ def New_Columns():
             # Convert to numeric, forcing errors to NaN
             df[col] = pd.to_numeric(df[col], errors='coerce')
             print(f"  ✓ {col}: {df[col].isna().sum()} missing/invalid values")
-    
     # Also convert Year to integer
     if 'Year' in df.columns:
         df['Year'] = pd.to_numeric(df['Year'], errors='coerce').astype('Int64')  # nullable integer
     
     if 'Id' in df.columns:
         df['Id'] = pd.to_numeric(df['Id'], errors='coerce').astype('Int64')
-    
     print("\n✓ All numeric conversions complete")
-    
     # 1. Calculate total compensation without benefits
     df['TotalCompensation'] = df['BasePay'].fillna(0) + df['OvertimePay'].fillna(0) + df['OtherPay'].fillna(0)
-    
     # 2. Calculate overtime percentage of base pay (handle division by zero)
-    df['OvertimePercent'] = np.where(
-        (df['BasePay'] > 0) & (df['BasePay'].notna()),
-        (df['OvertimePay'] / df['BasePay']) * 100,
-        np.nan
-    )
+    # Using pandas operations instead of numpy.where
+    df['OvertimePercent'] = None
+    mask = (df['BasePay'] > 0) & (df['BasePay'].notna())
+    df.loc[mask, 'OvertimePercent'] = (df.loc[mask, 'OvertimePay'] / df.loc[mask, 'BasePay']) * 100
     
     # 3. Benefits to total pay ratio (handle division by zero)
-    df['BenefitsRatio'] = np.where(
-        (df['TotalPay'] > 0) & (df['TotalPay'].notna()),
-        df['Benefits'] / df['TotalPay'],
-        np.nan
-    )
+    df['BenefitsRatio'] = None
+    mask = (df['TotalPay'] > 0) & (df['TotalPay'].notna())
+    df.loc[mask, 'BenefitsRatio'] = df.loc[mask, 'Benefits'] / df.loc[mask, 'TotalPay']
     
     # 4. Create salary categories
     df['SalaryCategory'] = pd.cut(
@@ -186,10 +177,15 @@ def Joining():
     # ===== STEP 2: Create Agency Mapping =====
     print("Creating agency mapping...")
     
+    # Create agency codes manually (replacing numpy)
+    agency_codes = []
+    for i in range(len(unique_agencies)):
+        agency_codes.append(f'AG-{str(i).zfill(4)}')
+    
     # Create mapping for all unique agencies
     agency_mapping = pd.DataFrame({
         'Agency': unique_agencies,
-        'AgencyCode': [f'AG-{str(i).zfill(4)}' for i in range(len(unique_agencies))],
+        'AgencyCode': agency_codes,
         'Department': ['General' for _ in range(len(unique_agencies))]
     })
     
@@ -220,7 +216,7 @@ def Joining():
     # Check for unmatched agencies
     unmatched_count = merged_df['AgencyCode'].isna().sum()
     if unmatched_count > 0:
-        print(f"\n⚠ Warning: {unmatched_count:,} records with unmatched agencies")
+        print(f"\n Warning: {unmatched_count:,} records with unmatched agencies")
         unmatched_agencies = merged_df[merged_df['AgencyCode'].isna()]['Agency'].unique()
         print(f"  Unmatched agencies: {len(unmatched_agencies)}")
         if len(unmatched_agencies) > 0 and len(unmatched_agencies) <= 10:
@@ -262,9 +258,9 @@ if __name__ == "__main__":
         print("  3. merged_data.csv")
         
     except FileNotFoundError as e:
-        print(f"\n❌ Error: Could not find file - {e}")
+        print(f"\n Error: Could not find file - {e}")
         print("Please check that your data files are in the correct location.")
     except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
+        print(f"\n Unexpected error: {e}")
         import traceback
         traceback.print_exc()
